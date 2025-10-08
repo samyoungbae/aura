@@ -9,7 +9,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Enum para o tipo da transação
 enum TransactionType {
   INCOME
   EXPENSE
@@ -28,6 +27,23 @@ model Transaction {
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Budget {
+  id        String   @id @default(cuid())
+  category  String
+  amount    Float
+  month     Int // Armazenaremos o mês como um número (ex: 1 para Janeiro)
+  year      Int // Armazenaremos o ano (ex: 2025)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Garante que um usuário só pode ter um orçamento por categoria/mês/ano
+  @@unique([userId, category, month, year])
 }
 
 // Modelos necessários para o NextAuth.js
@@ -64,10 +80,11 @@ model User {
   email         String?   @unique
   emailVerified DateTime?
   image         String?
-
+  
   accounts      Account[]
   sessions      Session[]
   transactions  Transaction[]
+  budgets       Budget[]
 }
 
 model VerificationToken {
